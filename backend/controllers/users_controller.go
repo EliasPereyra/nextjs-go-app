@@ -66,6 +66,27 @@ func CreateUser(db *sql.DB) http.HandlerFunc{
 	} 
 }
 
-func UpdateUser(db *sql.DB){}
+func UpdateUser(db *sql.DB) http.HandlerFunc{
+	return func(w http.ResponseWriter, r *http.Request) {
+		var u model.User
+		json.NewDecoder(r.Body).Decode(&u)
+
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		_, err := db.Exec("UPDATE users SET fullname = $1, email = $2, profile_img = $3 WHERE id = $4", u.Fullname, u.Email, u.Profile_img, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var updatedUser model.User
+		err = db.QueryRow("SELECT id, fullname, email, profile_img FROM users WHEERE id = $1", id).Scan(&updatedUser.Id, &updatedUser.Fullname, &updatedUser.Email, &updatedUser.Profile_img)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		json.NewEncoder(w).Encode(updatedUser)
+	}
+}
 
 func DeleteUser(db *sql.DB){}
