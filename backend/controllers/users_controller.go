@@ -52,7 +52,19 @@ func GetUser(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func CreateUser(db *sql.DB){}
+func CreateUser(db *sql.DB) http.HandlerFunc{
+	return func(w http.ResponseWriter, r *http.Request) {
+		var u model.User
+		json.NewDecoder(r.Body).Decode(&u)
+
+		err := db.QueryRow("INSERT INTO users (fullname, email, profile_img) VALUES ($1, $2, $3) RETURNING id", u.Fullname, u.Email, u.Profile_img).Scan(&u.Id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		json.NewEncoder(w).Encode(u)
+	} 
+}
 
 func UpdateUser(db *sql.DB){}
 
